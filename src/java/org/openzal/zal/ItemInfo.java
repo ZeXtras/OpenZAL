@@ -24,24 +24,28 @@ import org.jetbrains.annotations.NotNull;
 
 public class ItemInfo extends ItemStatus
 {
-  public final int itemId;
+  public final String itemId;
 
   public ItemInfo(int itemId, int sequence, long date)
   {
-    super(sequence,date);
-    this.itemId = itemId;
+    this(String.valueOf(itemId), sequence,date);
   }
 
   public ItemInfo(int itemId, @NotNull ItemStatus itemStatus )
   {
-    super(itemStatus.sequence,itemStatus.date);
+    this(itemId, itemStatus.getSequence(), itemStatus.getDate());
+  }
+
+  public ItemInfo(String itemId, int sequence, long date)
+  {
+    super(sequence, date);
     this.itemId = itemId;
   }
 
   @Override
   public int hashCode()
   {
-    return itemId + sequence;
+    return getRawItemId().hashCode() + getSequence();
   }
 
   @Override
@@ -54,23 +58,32 @@ public class ItemInfo extends ItemStatus
 
     ItemInfo other = (ItemInfo) object;
 
-    return other.sequence == sequence
-           && other.date == date
-           && other.itemId == itemId;
-
+    return other.getSequence() == getSequence()
+           && other.getDate() == getDate()
+           && other.getRawItemId().equals(getRawItemId());
   }
 
   @Override
   public String toString()
   {
-    return
-      "itemId: " + itemId + " " +
-      "sq: " + sequence + " " +
-      "dt: "+date;
+    StringBuilder builder = new StringBuilder();
+
+    builder.append("itemId: ").append(getRawItemId()).append(" ");
+    builder.append("sq: ").append(getSequence()).append(" ");
+    builder.append("dt: ").append(getDate()).append(" ");
+
+    return builder.toString();
   }
 
   public int getItemId()
+    throws NumberFormatException
+  {
+    return Integer.valueOf(getRawItemId());
+  }
+
+  public String getRawItemId()
   {
     return itemId;
   }
+
 }

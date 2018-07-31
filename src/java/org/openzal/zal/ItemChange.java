@@ -45,7 +45,7 @@ public class ItemChange extends PlacedItemInfo
     @NotNull ItemInfo itemInfo
   )
   {
-    super(folderId, itemInfo.itemId, itemInfo.sequence, itemInfo.date);
+    super(folderId, itemInfo.getItemId(), itemInfo.sequence, itemInfo.date);
     this.deleted = deleted;
   }
 

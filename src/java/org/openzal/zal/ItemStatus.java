@@ -52,6 +52,16 @@ public class ItemStatus implements Serializable
     );
   }
 
+  public int getSequence()
+  {
+    return sequence;
+  }
+
+  public long getDate()
+  {
+    return date;
+  }
+
   @Override
   public String toString()
   {
