@@ -180,68 +180,59 @@ public class CalendarItem extends Item
       mimeMessage = getMimeMessage();
     }
 
-    List<Invite> exceptions = defaultInvite.getRecurrencesInvitees(Invite.TYPE_EXCEPTION);
+    List<Invite> exceptions;
+
+    if(defaultInvite.hasRecurId())
+    {
+      exceptions = new ArrayList<>();
+      for(Invite invite : getInvites())
+      {
+        if(invite.getMailItemId() == defaultInvite.getMailItemId())
+        {
+          continue;
+        }
+        exceptions.add(invite);
+      }
+    }else
+    {
+      exceptions = defaultInvite.getRecurrencesInvitees(Invite.TYPE_EXCEPTION);
+    }
 
     List<CalendarItemData> newExceptions = new ArrayList<CalendarItemData>(exceptions.size());
     for (Invite exception : exceptions)
     {
       if (recurId != null && recurId.equals(exception.getRecurId()))
       {
-        Invite updatedInvite = updateInvitePartStat(mailbox, invitedUser, partStat, exception);
-        newExceptions.add(
-          new CalendarItemData(
-            updatedInvite,
-            getParsedMessage(
-              textParser,
-              mailbox,
-              mimeMessage,
-              updatedInvite
-            )
-          )
-        );
+        exception = updateInvitePartStat(mailbox, invitedUser, partStat, exception);
       }
-      else
-      {
-        newExceptions.add(
-          new CalendarItemData(
-            exception,
-            getParsedMessage(
-              textParser,
-              mailbox,
-              mimeMessage,
-              exception
-            )
+      newExceptions.add(
+        new CalendarItemData(
+          exception,
+          getParsedMessage(
+            textParser,
+            mailbox,
+            mimeMessage,
+            exception
           )
-        );
-      }
+        )
+      );
     }
 
     CalendarItemData defaultCalendarItemData;
     if (recurId == null)
     {
-      Invite updatedInvite = updateInvitePartStat(mailbox, invitedUser, partStat, defaultInvite);
-      defaultCalendarItemData = new CalendarItemData(
-        updatedInvite,
-        getParsedMessage(
-          textParser,
-          mailbox,
-          mimeMessage,
-          updatedInvite
-        )
-      );
+      defaultInvite = updateInvitePartStat(mailbox, invitedUser, partStat, defaultInvite);
     }
-    else
-    {
-      defaultCalendarItemData = new CalendarItemData(
-        defaultInvite,
-        getParsedMessage(
-          textParser,
-          mailbox,
-          mimeMessage,
-          defaultInvite
-        )
-      );
-    }
+
+    defaultCalendarItemData = new CalendarItemData(
+      defaultInvite,
+      getParsedMessage(
+        textParser,
+        mailbox,
+        mimeMessage,
+        defaultInvite
+      )
+    );
 
     mailbox.setCalendarItem(
       operationContext,

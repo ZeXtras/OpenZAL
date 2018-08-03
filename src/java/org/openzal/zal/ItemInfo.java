@@ -36,6 +36,11 @@ public class ItemInfo extends ItemStatus
     this(itemId, itemStatus.getSequence(), itemStatus.getDate());
   }
 
+  public ItemInfo(String itemId, @NotNull ItemStatus itemStatus)
+  {
+    this(itemId, itemStatus.getSequence(), itemStatus.getDate());
+  }
+
   public ItemInfo(String itemId, int sequence, long date)
   {
     super(sequence, date);
