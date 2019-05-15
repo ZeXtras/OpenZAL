@@ -117,6 +117,10 @@ public class ProvisioningImp implements Provisioning
   public static String A_zimbraMobilePolicySuppressDeviceEncryption                 = com.zimbra.cs.account.Provisioning.A_zimbraMobilePolicySuppressDeviceEncryption;
   public static String A_zimbraMailOutgoingSieveScript                              = com.zimbra.cs.account.Provisioning.A_zimbraMailOutgoingSieveScript;
   public static String A_zimbraMailTrustedSenderListMaxNumEntries                   = com.zimbra.cs.account.Provisioning.A_zimbraMailTrustedSenderListMaxNumEntries;
+  public static String A_zimbraTwoFactorAuthEnabled                                 = com.zimbra.cs.account.Provisioning.A_zimbraTwoFactorAuthEnabled;
+  public static String A_zimbraTwoFactorAuthScratchCodes                            = com.zimbra.cs.account.Provisioning.A_zimbraTwoFactorAuthScratchCodes;
+  public static String A_zimbraTwoFactorAuthSecret                                  = com.zimbra.cs.account.Provisioning.A_zimbraTwoFactorAuthSecret;
+  public static String A_zimbraAppSpecificPassword                                  = com.zimbra.cs.account.Provisioning.A_zimbraAppSpecificPassword;
 
 /* $if ZimbraVersion >= 8.5.0 $ */
   public static String A_zimbraAuthTokens                                     = com.zimbra.cs.account.Provisioning.A_zimbraAuthTokens;
