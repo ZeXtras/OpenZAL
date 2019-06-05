@@ -21,15 +21,12 @@
 package org.openzal.zal.calendar;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.zimbra.cs.mailbox.calendar.ZAttendee;
 import com.zimbra.cs.mailbox.calendar.ZOrganizer;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
-@JsonIgnoreProperties( ignoreUnknown = true )
 public class Attendee
 {
   private final AttendeeType mType;

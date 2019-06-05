@@ -20,11 +20,13 @@
 
 package org.openzal.zal.calendar;
 
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue;
+
 public enum AttendeeType
 {
   Organizer("CHA"),
   Required("REQ"),
-  Optional("OPT"),
+  @JsonEnumDefaultValue Optional("OPT"),
   Resource("NON")
   ;
 
