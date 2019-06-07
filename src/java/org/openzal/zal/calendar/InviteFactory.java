@@ -73,7 +73,7 @@ public class InviteFactory
   private       RecurrenceRule     mRecurrenceRule;
   private       int                mMailItemId = 0;
   private       String             mPartStat;
-  private       boolean            mResponseRequest;
+  private       boolean            mResponseRequest = false;
 
   public InviteFactory()
   {
