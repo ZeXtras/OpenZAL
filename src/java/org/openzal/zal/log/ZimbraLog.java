@@ -44,14 +44,19 @@ public class ZimbraLog
       mLog = log;
     }
 
+    public void trace(String msg)
+    {
+      mLog.trace(msg);
+    }
+
     public void debug(String msg)
     {
-      mLog.info(msg);
+      mLog.debug(msg);
     }
 
     public void debug(String msg, Object ... content)
     {
-      mLog.info(msg, content);
+      mLog.debug(msg, content);
     }
 
     public void info(String msg)
@@ -102,6 +107,31 @@ public class ZimbraLog
     public boolean isDebugEnabled()
     {
       return mLog.isDebugEnabled();
+    }
+
+    public void setLogLevelTrace()
+    {
+      mLog.setLevel(Log.Level.trace);
+    }
+    public void setLogLevelDebug()
+    {
+      mLog.setLevel(Log.Level.debug);
+    }
+    public void setLogLevelWarning()
+    {
+      mLog.setLevel(Log.Level.warn);
+    }
+    public void setLogLevelInfo()
+    {
+      mLog.setLevel(Log.Level.info);
+    }
+    public void setLogLevelError()
+    {
+      mLog.setLevel(Log.Level.error);
+    }
+    public void setLogLevelFatal()
+    {
+      mLog.setLevel(Log.Level.error);
     }
   }
 
