@@ -347,7 +347,7 @@ public class Mailbox
   public Object getListener(String listenerName)
   {
     /* $if ZimbraX == 1 $
-    return null;
+    return mMbox.getNotificationPubSub().getSubscriber().getListener(listenerName);
     /* $else $ */
     return mMbox.getListener(listenerName);
     /* $endif $ */
@@ -355,12 +355,14 @@ public class Mailbox
 
   public void registerListener(@Nonnull Listener listener)
   {
-    /* $if ZimbraX == 1 $
-    return;
-    /* $else $ */
+
     try
     {
+      /* $if ZimbraX == 1 $
+      mMbox.getNotificationPubSub().getSubscriber().addListener(listener.getStoreContext().toZimbra(Session.class));
+      /* $else $ */
       mMbox.addListener(listener.getStoreContext().toZimbra(Session.class));
+      /* $endif $ */
     }
     catch (com.zimbra.common.service.ServiceException e)
     {
@@ -368,13 +370,12 @@ public class Mailbox
                                mMbox.getId() + ": " +
                                e.getMessage());
     }
-    /* $endif $ */
   }
 
   public void unregisterListener(@Nonnull Listener listener)
   {
     /* $if ZimbraX == 1 $
-    return;
+    mMbox.getNotificationPubSub().getSubscriber().removeListener(listener.getStoreContext().toZimbra(Session.class));
     /* $else $ */
     mMbox.removeListener(listener.getStoreContext().toZimbra(Session.class));
     /* $endif $ */
@@ -383,7 +384,7 @@ public class Mailbox
   public void unregisterListener(@Nonnull MailboxSessionProxy session)
   {
     /* $if ZimbraX == 1 $
-    return;
+    mMbox.getNotificationPubSub().getSubscriber().removeListener(session.toZimbra(Session.class));
     /* $else $ */
     mMbox.removeListener(session.toZimbra(Session.class));
     /* $endif $ */
