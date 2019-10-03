@@ -35,6 +35,7 @@ import com.zimbra.cs.mailbox.CalendarItem.ReplyInfo;
 import com.zimbra.cs.mailbox.cache.FolderCache;
 import com.zimbra.cs.mailbox.cache.LocalTagCache;
 import com.zimbra.cs.mailbox.cache.RedisTagCache;
+import com.zimbra.cs.mailbox.cache.TagCache;
 /* $endif $ */
 import com.zimbra.cs.mailbox.DeliveryOptions;
 import com.zimbra.cs.mailbox.MailItem;
@@ -2439,7 +2440,7 @@ public class Mailbox
     {
       Map<Object, com.zimbra.cs.mailbox.Tag> tagsMap;
       /* $if ZimbraX == 1 $
-      RedisTagCache tagCache = (RedisTagCache) sTagCache.get(mMbox);
+      TagCache tagCache =  (TagCache) sTagCache.get(mMbox);
       Collection<com.zimbra.cs.mailbox.Tag> tags = tagCache.values();
       tagsMap = new HashMap<Object, com.zimbra.cs.mailbox.Tag>(tags.size());
       for (com.zimbra.cs.mailbox.Tag tag : tags)
@@ -2453,7 +2454,8 @@ public class Mailbox
     }
     catch (Throwable ex)
     {
-      return null;
+      ZimbraLog.mailbox.error(Utils.exceptionToString(ex));
+      return new HashMap<>();
     }
   }
 
