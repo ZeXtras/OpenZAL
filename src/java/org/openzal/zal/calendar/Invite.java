@@ -901,5 +901,32 @@ public class Invite
      return mInvite.getRsvp();
    }
 
+   public void addAttachment(Attachment attachment)
+   {
+     /* $if ZimbraVersion > 8.5.0 $ */
+     mInvite.addIcalendarAttach(attachment.toZimbra(com.zimbra.common.calendar.Attach.class));
+     /* $endif $ */
+   }
 
+  public void addAttachments(Iterable<Attachment> attachments)
+  {
+    for(Attachment attachment : attachments)
+    {
+      addAttachment(attachment);
+    }
+  }
+
+  public List<Attachment> getAttachmentList()
+  {
+    List<Attachment> attachmentList = new ArrayList<>();
+
+    /* $if ZimbraVersion > 8.5.0 $ */
+    for(com.zimbra.common.calendar.Attach zAttachment : mInvite.getIcalendarAttaches())
+    {
+      attachmentList.add(new Attachment(zAttachment));
+    }
+    /* $endif $ */
+
+    return attachmentList;
+  }
 }
