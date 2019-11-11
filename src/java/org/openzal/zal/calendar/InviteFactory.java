@@ -74,12 +74,14 @@ public class InviteFactory
   private       int                mMailItemId = 0;
   private       String             mPartStat;
   private       boolean            mResponseRequest;
+  private       List<Attachment>   mAttachmentList;
 
   public InviteFactory()
   {
     mAlarmSet = false;
     mSequence = 0;
     mClock = ActualClock.sInstance;
+    mAttachmentList = new ArrayList<>();
   }
 
   public Invite createTask(Mailbox mbox)
@@ -242,6 +244,20 @@ public class InviteFactory
     mResponseRequest = rsvp;
   }
 
+  public void addAttachment(Attachment attachment)
+  {
+    mAttachmentList.add(attachment);
+    mHasAttachment = true;
+  }
+
+  public void addAttachments(Iterable<Attachment> attachments)
+  {
+    for(Attachment attachment : attachments)
+    {
+      mAttachmentList.add(attachment);
+    }
+  }
+
   public void populateFactoryFromExistingInvite( Invite invite )
   {
     mUid = invite.getUid();
@@ -290,6 +306,8 @@ public class InviteFactory
     }
     mMailItemId = invite.getMailItemId();
     mPartStat = invite.getPartStat();
+    mResponseRequest = invite.getResponseRequest();
+    mAttachmentList = invite.getAttachmentList();
   }
 
 
@@ -450,7 +468,11 @@ public class InviteFactory
     if( mHasAttachment )
     {
       invite.setHasAttachment(true);
-      return new Invite(invite, mMimeMessage);
+
+      Invite newInvite = new Invite(invite, mMimeMessage);
+      // newInvite.addAttachments(mAttachmentList);
+
+      return newInvite;
     }
     else
     {
