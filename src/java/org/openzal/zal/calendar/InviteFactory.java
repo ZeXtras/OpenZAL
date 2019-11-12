@@ -470,7 +470,8 @@ public class InviteFactory
       invite.setHasAttachment(true);
 
       Invite newInvite = new Invite(invite, mMimeMessage);
-      // newInvite.addAttachments(mAttachmentList);
+
+      newInvite.addAttachments(mAttachmentList);
 
       return newInvite;
     }
