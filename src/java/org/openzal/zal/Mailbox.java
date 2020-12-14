@@ -141,6 +141,11 @@ public class Mailbox
     }
   }
 
+  public MailboxMaintenance getMaintenance()
+  {
+    return new MailboxMaintenance(mMbox.getMaintenance());
+  }
+
   public long getSize()
   {
     return mMbox.getSize();
@@ -1568,6 +1573,26 @@ public class Mailbox
           throws ZimbraException
   {
     return search(octxt, queryString, types, sortBy, chunkSize, offset, onlyIds, false);
+  }
+
+  public QueryResults search(
+    OperationContext operationContext,
+    org.openzal.zal.SearchParams  searchParams
+  ) {
+    ZimbraQueryResults result;
+    try {
+      result = mMbox.index.search(
+          SoapProtocol.Soap12,
+          operationContext.getOperationContext(),
+          searchParams.toZimbra(SearchParams.class)
+      );
+    } catch (ServiceException e) {
+      throw ExceptionWrapper.wrap(e);
+    }
+
+    return new QueryResults(
+        result
+    );
   }
 
   @Nonnull

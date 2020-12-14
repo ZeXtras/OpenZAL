@@ -22,6 +22,16 @@ public class MailboxData
     );
   }
 
+  public MailboxData(@Nonnull Mailbox mailbox)
+  {
+    this(
+      mailbox.getId(),
+      (short) mailbox.getSchemaGroupId(),
+      mailbox.getAccountId(),
+      mailbox.getIndexVolume()
+    );
+  }
+
   public MailboxData(@Nonnull String accountId)
   {
     this(
@@ -128,5 +138,24 @@ public class MailboxData
         return false;
       }
     };
+  }
+
+  @Override
+  public String toString()
+  {
+    StringBuilder stringBuilder = new StringBuilder();
+    if( Objects.nonNull(mId) && mId > -1 )
+    {
+      stringBuilder.append("mid=").append(mId);
+    }
+    if( Objects.nonNull(mAccountId) )
+    {
+      if( stringBuilder.length() > 0 )
+      {
+        stringBuilder.append(" ");
+      }
+      stringBuilder.append("accountId=").append(mAccountId);
+    }
+    return stringBuilder.toString();
   }
 }
