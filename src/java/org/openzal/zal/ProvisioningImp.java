@@ -21,6 +21,7 @@
 package org.openzal.zal;
 
 import com.zimbra.cs.account.auth.AuthContext;
+import com.zimbra.cs.account.auth.AuthMechanism;
 import com.zimbra.cs.ldap.LdapConstants;
 import com.zimbra.cs.mailbox.ACL;
 import com.zimbra.cs.mailbox.Folder;
@@ -195,6 +196,7 @@ public class ProvisioningImp implements Provisioning
   public static String A_zimbraLastLogonTimestampFrequency                    = com.zimbra.cs.account.Provisioning.A_zimbraLastLogonTimestampFrequency;
   public static String A_zimbraPrefIdentityName                               = com.zimbra.cs.account.Provisioning.A_zimbraPrefIdentityName;
   public static String A_zimbraPrefWhenInFolderIds                            = com.zimbra.cs.account.Provisioning.A_zimbraPrefWhenInFolderIds;
+  public static String A_zimbraPrefWhenInFoldersEnabled                       = com.zimbra.cs.account.Provisioning.A_zimbraPrefWhenInFoldersEnabled;
   public static String A_zimbraPrefIdentityId                                 = com.zimbra.cs.account.Provisioning.A_zimbraPrefIdentityId;
   public static String A_zimbraCreateTimestamp                                = com.zimbra.cs.account.Provisioning.A_zimbraCreateTimestamp;
   public static String A_zimbraDataSourceId                                   = com.zimbra.cs.account.Provisioning.A_zimbraDataSourceId;
@@ -270,6 +272,7 @@ public class ProvisioningImp implements Provisioning
   public static String A_zimbraRedoLogDeleteOnRollover                        = com.zimbra.cs.account.Provisioning.A_zimbraRedoLogDeleteOnRollover;
   public static String A_zimbraPublicServicePort                              = com.zimbra.cs.account.Provisioning.A_zimbraPublicServicePort;
   public static String A_zimbraVirtualHostname                                = com.zimbra.cs.account.Provisioning.A_zimbraVirtualHostname;
+  public static String A_zimbraGalLdapAttrMap                                 = com.zimbra.cs.account.Provisioning.A_zimbraGalLdapAttrMap;
 
   /* $if ZimbraVersion >= 8.8.0 $ */
   public static String A_zimbraNetworkModulesNGEnabled                        = com.zimbra.cs.account.Provisioning.A_zimbraNetworkModulesNGEnabled;
@@ -300,6 +303,19 @@ public class ProvisioningImp implements Provisioning
 
   public static String A_zimbraPrefLocale                                     = com.zimbra.cs.account.Provisioning.A_zimbraPrefLocale;
   public static String A_zimbraLocale                                         = com.zimbra.cs.account.Provisioning.A_zimbraLocale;
+
+  public static String A_zimbraPasswordMinLength = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMinLength;
+  public static String A_zimbraPasswordMaxLength = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMaxLength;
+
+  public static String A_zimbraPasswordEnforceHistory = com.zimbra.cs.account.Provisioning.A_zimbraPasswordEnforceHistory;
+  public static String A_zimbraPasswordMinUpperCaseChars = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMinUpperCaseChars;
+  public static String A_zimbraPasswordMinLowerCaseChars = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMinLowerCaseChars;
+  public static String A_zimbraPasswordMinPunctuationChars = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMinPunctuationChars;
+  public static String A_zimbraPasswordMinNumericChars = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMinNumericChars;
+  public static String A_zimbraPasswordMinAlphaChars = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMinAlphaChars;
+  public static String A_zimbraPasswordAllowedChars = com.zimbra.cs.account.Provisioning.A_zimbraPasswordAllowedChars;
+  public static String A_zimbraPasswordMinDigitsOrPuncs = com.zimbra.cs.account.Provisioning.A_zimbraPasswordMinDigitsOrPuncs;
+  public static String A_zimbraPasswordAllowedPunctuationChars = com.zimbra.cs.account.Provisioning.A_zimbraPasswordAllowedPunctuationChars;
 
   @Nonnull
   public final com.zimbra.cs.account.Provisioning mProvisioning;
@@ -656,13 +672,29 @@ public class ProvisioningImp implements Provisioning
   }
 
   @Override
-  public void authAccountWithLdap(@Nonnull Account account,
-      String password, Map<String, Object> context) throws ZimbraException {
-    try
-    {
+  public void authAccountWithLdap(@Nonnull Account account, String password, Map<String, Object> context) throws ZimbraException {
+    try {
+      if (LdapProvisioning.class.isAssignableFrom(mProvisioning.getClass())) {
+        ((LdapProvisioning) mProvisioning)
+            .zimbraLdapAuthenticate(
+                account.toZimbra(com.zimbra.cs.account.Account.class), password, context);
+      } else {
+        mProvisioning.authAccount(
+            account.toZimbra(com.zimbra.cs.account.Account.class),
+            password,
+            (AuthContext.Protocol) context.get("proto"));
+      }
+    }
+    catch( ServiceException e ) {
+        throw ExceptionWrapper.wrap(e);
+    }
+  }
+
+  public void authAccountSkippingCustom(@Nonnull Account account,
+      String password, @Nonnull Map<String, Object> context, @Nullable String customName) throws ZimbraException {
+    try {
       String proto = context.get("proto").toString();
-      switch (proto)
-      {
+      switch (proto) {
         case "client_certificate":
           context.put("proto", AuthContext.Protocol.client_certificate);
         case "http_basic":
@@ -689,19 +721,57 @@ public class ProvisioningImp implements Provisioning
           context.put("proto", AuthContext.Protocol.http_basic);
       }
       if (LdapProvisioning.class.isAssignableFrom(mProvisioning.getClass())) {
-        ((LdapProvisioning) mProvisioning).zimbraLdapAuthenticate(
-                account.toZimbra(com.zimbra.cs.account.Account.class), password, context);
+        final Domain domain = requiredDomain(account);
+        final AuthMechanism authMechanism = AuthMechanism.newInstance(account.toZimbra(com.zimbra.cs.account.Account.class), context);
+        if(Objects.nonNull(customName) && authMechanism.getMechanism() == AuthMechanism.AuthMech.custom) {
+          customName = customName.startsWith(AuthMechanism.AuthMech.custom.name()+":") ?
+              customName :
+              String.format("%s:%s",AuthMechanism.AuthMech.custom.name(),customName);
+          if(!customName.equalsIgnoreCase(getAuthMechForDomain(domain, context))) {
+            doAuth(authMechanism, account, password, context);
+            return;
+          }
+        }
+        else {
+          doAuth(authMechanism, account, password, context);
+          return;
+        }
       }
-      else {
-        mProvisioning.authAccount(account.toZimbra(com.zimbra.cs.account.Account.class), password,
-            (AuthContext.Protocol) context.get("proto"));
-      }
+      authAccountWithLdap(account, password, context);
     }
     catch( ServiceException e )
     {
       throw ExceptionWrapper.wrap(e);
     }
   }
+
+  private String getAuthMechForDomain(Domain domain, Map<String, Object> context) {
+    String authMech = domain.getAuthMech();
+    final String authMechAdmin = domain.getAuthMechAdmin();
+    Object isAdminObj = context.get(AuthContext.AC_AS_ADMIN);
+    if (Objects.nonNull(isAdminObj) && ((Boolean)isAdminObj)) {
+      if(Objects.nonNull(authMechAdmin)) {
+        authMech = authMechAdmin;
+      }
+    }
+    return authMech;
+  }
+
+  private Domain requiredDomain(Account account) {
+    return Objects.requireNonNull(getDomain(account), String.format("missing domain for %s", account.getName()));
+  }
+
+  private void doAuth(AuthMechanism mechanism, Account account, String password, Map<String, Object> context)
+      throws ServiceException {
+    mechanism.doAuth(
+        (LdapProvisioning)mProvisioning,
+        requiredDomain(account).toZimbra(com.zimbra.cs.account.Domain.class),
+        account.toZimbra(com.zimbra.cs.account.Account.class),
+        password,
+        context
+    );
+  }
+
 
   @Override
   public Account getAccountByAccountIdOrItemId(String id)
@@ -863,6 +933,22 @@ public class ProvisioningImp implements Provisioning
     }
     catch (com.zimbra.common.service.ServiceException e)
     {
+      throw ExceptionWrapper.wrap(e);
+    }
+  }
+
+  @Nullable
+  @Override
+  public Domain getDomainByVirtualHostname(String host) throws ZimbraException {
+    try {
+      com.zimbra.cs.account.Domain domain = mProvisioning.getDomainByVirtualHostname(host);
+      if (domain == null) {
+        return null;
+      } else {
+        return new Domain(domain);
+      }
+    }
+    catch (com.zimbra.common.service.ServiceException e) {
       throw ExceptionWrapper.wrap(e);
     }
   }
@@ -2375,6 +2461,33 @@ public class ProvisioningImp implements Provisioning
     }
 
     return ZimbraListWrapper.wrapAccounts(entryList);
+  }
+
+  public void visitAllDelegatedAdminAccounts(SimpleVisitor<Account> visitor) throws ZimbraException
+  {
+    List<NamedEntry> entryList;
+    SearchDirectoryOptions opts = new SearchDirectoryOptions();
+    ZLdapFilterFactory zLdapFilterFactory = ZLdapFilterFactory.getInstance();
+    try
+    {
+      ZLdapFilter filter = zLdapFilterFactory.andWith(
+          ZLdapFilterFactory.getInstance().fromFilterString(
+              ZLdapFilterFactory.FilterId.ALL_ACCOUNTS_ONLY,
+              zLdapFilterFactory.equalityFilter(A_zimbraIsDelegatedAdminAccount, "TRUE", true)
+          ),
+          ZLdapFilterFactory.getInstance().fromFilterString(
+              ZLdapFilterFactory.FilterId.ALL_ACCOUNTS_ONLY,
+              zLdapFilterFactory.equalityFilter(A_zimbraAccountStatus, "active", true)
+          )
+      );
+      opts.setFilter(filter);
+      opts.setTypes(SearchDirectoryOptions.ObjectType.accounts);
+      mProvisioning.searchDirectory(opts, new ZimbraVisitorWrapper<>(visitor, mNamedEntryAccountWrapper));
+    }
+    catch (ServiceException e)
+    {
+      throw ExceptionWrapper.wrap(e);
+    }
   }
 
   @Override

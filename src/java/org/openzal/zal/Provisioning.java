@@ -88,6 +88,9 @@ public interface Provisioning
   void authAccountWithLdap(@Nonnull Account account, String password, Map<String, Object> context)
     throws ZimbraException;
 
+  void authAccountSkippingCustom(@Nonnull Account account, String password, Map<String, Object> context, @Nullable String customName)
+      throws ZimbraException;
+
   Account getAccountByAccountIdOrItemId(String id);
 
   @Nullable
@@ -114,6 +117,10 @@ public interface Provisioning
 
   @Nullable
   Domain getDomainById(String domainId)
+    throws ZimbraException;
+
+  @Nullable
+  Domain getDomainByVirtualHostname(String host)
     throws ZimbraException;
 
   List<DistributionList> getAllDistributionLists(@Nonnull Domain domain)
@@ -335,6 +342,8 @@ public interface Provisioning
   void setZimletPriority(String zimletName, int priority);
 
   List<Account> getAllDelegatedAdminAccounts() throws ZimbraException;
+
+  void visitAllDelegatedAdminAccounts(SimpleVisitor<Account> visitor) throws ZimbraException;
 
   @Nullable
   Group getGroupById(String dlStr)
